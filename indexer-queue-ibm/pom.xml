@@ -50,7 +50,7 @@
 		<java.version>17</java.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
-		<os-core-lib-ibm.version>0.26.0</os-core-lib-ibm.version>
+		<os-core-lib-ibm.version>0.28.1</os-core-lib-ibm.version>
 		<spring.version>6.2.2</spring.version>
 		<jackson.version>2.16.1</jackson.version>
         <spring-boot.version>3.3.5</spring-boot.version>

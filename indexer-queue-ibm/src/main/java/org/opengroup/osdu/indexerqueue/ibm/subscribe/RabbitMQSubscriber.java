@@ -14,11 +14,9 @@
 
 package org.opengroup.osdu.indexerqueue.ibm.subscribe;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.google.common.base.Strings;
+import com.google.gson.*;
 import jakarta.inject.Inject;
-
 import jakarta.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -34,23 +32,18 @@ import org.opengroup.osdu.core.ibm.messagebus.IMessageFactory;
 import org.opengroup.osdu.indexerqueue.ibm.scope.ThreadDpsHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
-@ConditionalOnProperty(prefix = "ibm.queue", name = "manager", havingValue = "activemq")
-public class Subscriber {
+@ConditionalOnProperty(prefix = "ibm.queue", name = "manager", havingValue = "rabbitmq")
+public class RabbitMQSubscriber {
 
     @Inject
     IMessageFactory mq;
@@ -75,19 +68,14 @@ public class Subscriber {
     private String topicFlag;
 
     private final Gson gson = new Gson();
-    private static final Logger logger = LoggerFactory.getLogger(Subscriber.class);
-    private DpsHeaders dpsHeaders = null;
-    private final static String RETRY_STRING = "retry";
-    private final static String ERROR_CODE = "errorCode";
-    private final static String ERROR_MESSAGE = "errorMessage";
-    private Map<String, String> attributes;
+    private static final Logger logger = LoggerFactory.getLogger(RabbitMQSubscriber.class);
 
     final String INDEXER_API_KEY_HEADER = "x-api-key";
 
-//    @JmsListener(destination = "${ibm.env.prefix}" + "-" + IMessageFactory.DEFAULT_QUEUE_NAME)
-    public void recievedMessage(String msg) throws Exception {
+    @RabbitListener(queues = "${ibm.env.prefix}" +"-"+IMessageFactory.DEFAULT_QUEUE_NAME)
+    public void receivedRabbitMessage(String msg) {
 
-        logger.info("Recieved Message: " + msg);
+        logger.info("received Message: " + msg);
 
         if (topicFlag.equalsIgnoreCase("true")) {
             logger.info(
@@ -95,104 +83,61 @@ public class Subscriber {
             return;
         }
 
-        RecordChangedMessages recordMessage;
-        recordMessage = this.gson.fromJson(msg, RecordChangedMessages.class);
-
-
-        logger.info(String.format("message body: %s", this.gson.toJson(recordMessage)));
-
-        if (msg.contains(RETRY_STRING)) {
-            // handle failed records ibm-prefix-record queue
-            dpsHeaders = getThreadDpsHeader(recordMessage);
-            threadDpsHeaders.setThreadContext(dpsHeaders.getHeaders());
-            logger.info(String.format("message headers: %s", dpsHeaders.toString()));
-            if (!recordMessage.getAttributes().get(RETRY_STRING).isEmpty()
-                && Integer.parseInt(recordMessage.getAttributes().get(RETRY_STRING)) >= RETRY_COUNT) {
-                recordMessage.getAttributes().put(RETRY_STRING, "0");
-                msg = gson.toJson(recordMessage);
-                logger.info("sending to dlq. Resetting retry count to 0");
-                mq.sendMessageDLQ(msg);
-                return;
-            }
-        } else {
+        try {
             // handles fresh messages from os-storage service - ibm-prefix-record queue
-            recordMessage = this.getTaskQueueMessage(msg);
-            logger.info(String.format("recordMessage: %s", recordMessage.toString()));
-            dpsHeaders = getThreadDpsHeader(recordMessage);
+            RecordChangedMessages recordMessage = this.getTaskQueueMessage(msg);
+            logger.info("Parsed message: {}", gson.toJson(recordMessage));
+            DpsHeaders dpsHeaders = getThreadDpsHeader(recordMessage);
             threadDpsHeaders.setThreadContext(dpsHeaders.getHeaders());
             dpsHeaders.getHeaders().put(DpsHeaders.ACCOUNT_ID, recordMessage.getDataPartitionId());
             if (recordMessage.hasCorrelationId()) {
                 dpsHeaders.getHeaders().put(DpsHeaders.CORRELATION_ID, recordMessage.getCorrelationId());
             }
-            logger.info(String.format("message headers: %s", dpsHeaders.toString()));
-            logger.info(String.format("message body: %s", this.gson.toJson(recordMessage)));
-        }
+            logger.info(String.format("message headers: %s", dpsHeaders.getHeaders().toString()));
 
-        String url = StringUtils.join(INDEXER_URL, Constants.WORKER_RELATIVE_URL);
-        HttpClient httpClient = new HttpClient();
-        dpsHeaders.put(INDEXER_API_KEY_HEADER, INDEXER_API_KEY);
-//        dpsHeaders.getHeaders().put(DpsHeaders.DATA_PARTITION_ID, recordMessage.getDataPartitionId());
-        HttpRequest rq = HttpRequest.post(recordMessage).url(url).headers(dpsHeaders.getHeaders()).build();
-        HttpResponse result = httpClient.send(rq);
-        if (result.hasException()) {
-            // extract exception info from result body and add attribute in
-            // recodchangedMessage
-            logger.error(result.getException().getLocalizedMessage(), result.getException());
-            int retryCount = getRetryCount(recordMessage);
-            String responseCode = String.valueOf(result.getResponseCode());
-            attributes = recordMessage.getAttributes();
-            attributes.put(ERROR_CODE, responseCode);
-            attributes.put(ERROR_MESSAGE, result.getException().getMessage());
-            attributes.put(RETRY_STRING, String.valueOf(retryCount));
-            recordMessage.setAttributes(attributes);
-            msg = gson.toJson(recordMessage);
-            mq.sendMessage(msg);
-            return;
-        } else if (result.getResponseCode() != 200) {
-            // if AppException thrown from os-indexer module then add errorcode and
-            // errormessage into attributes
-            int retryCount = getRetryCount(recordMessage);
-            String responseCode = String.valueOf(result.getResponseCode());
-            logger.error(String.format("Error ResponseCode: %s", responseCode));
-            String errMsg = "";
-            try {
-                AppError error = gson.fromJson(result.getBody(), AppError.class);
-                logger.error(String.format("Error Response: %s", error.toString()));
-                errMsg = error.getMessage();
-            } catch (JsonSyntaxException e) {
-                logger.error(String.format("Failed to parse the error response body: %s encountered %s",
-                    result.getBody(), e.getMessage()));
+            String url = StringUtils.join(INDEXER_URL, Constants.WORKER_RELATIVE_URL);
+            HttpClient httpClient = new HttpClient();
+            dpsHeaders.put(INDEXER_API_KEY_HEADER, INDEXER_API_KEY);
+            HttpRequest rq = HttpRequest.post(recordMessage).url(url).headers(dpsHeaders.getHeaders()).build();
+
+            int retriesLeft = RETRY_COUNT;
+            while (retriesLeft > 0) {
+                HttpResponse result = null;
+                try {
+                    logger.info("Calling indexer API - {}", url);
+                    result = httpClient.send(rq);
+                    logger.info("Indexer returned with status code: {}", result.getResponseCode());
+                    if (result.getResponseCode() == 200 ) {
+                        logger.info("Record processed successfully!!");
+                        break;
+                    } else if (result.hasException() || (result.getBody() != null && !result.getBody().isEmpty())) {
+                        AppError error = gson.fromJson(result.getBody(), AppError.class);
+                        logger.error("Retrying to index records, indexer-service error: {}", error.getMessage());
+                    } else {
+                        logger.error("Retrying to index records, indexer-service returned response: {}", result.toString());
+                    }
+                } catch (Exception e) {
+                    logger.info("Exception occurred in indexer-service : {}", e.getMessage());
+//                    do not re-throw, retry until retriesLeft becomes 0
+//                    throw new AppException(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getCause().getMessage(), "Failed to call Indexer service", e);
+                }
+                retriesLeft--;
             }
-            attributes = recordMessage.getAttributes();
-            attributes.put(ERROR_MESSAGE, errMsg);
-            attributes.put(ERROR_CODE, responseCode);
-            attributes.put(RETRY_STRING, String.valueOf(retryCount));
-            recordMessage.setAttributes(attributes);
-            msg = gson.toJson(recordMessage);
-            mq.sendMessage(msg);
-        }
 
+            if(retriesLeft == 0) {
+                logger.info("Retry attempt exhausted, sending message to DLQ");
+                mq.sendMessageDLQ(msg);
+            }
+        } catch (Exception ex) {
+            logger.error("Sending message to DLQ, as there is error processing request with exception: {}", ex.getMessage());
+            mq.sendMessageDLQ(msg);
+        }
     }
 
     private DpsHeaders getThreadDpsHeader(RecordChangedMessages recordMessage) {
         DpsHeaders headers = getHeaders(recordMessage);
         threadDpsHeaders.setThreadContext(headers.getHeaders());
         return headers;
-    }
-
-    /**
-     * @param recordMessage
-     * @return
-     */
-    private int getRetryCount(RecordChangedMessages recordMessage) {
-        int retryCount = 0;
-        if (recordMessage.getAttributes().containsKey(RETRY_STRING)) {
-            retryCount = Integer.parseInt(recordMessage.getAttributes().get(RETRY_STRING));
-            retryCount++;
-        } else {
-            retryCount = 1;
-        }
-        return retryCount;
     }
 
     private RecordChangedMessages getTaskQueueMessage(String msg) {
@@ -250,6 +195,5 @@ public class Subscriber {
         DpsHeaders headers = DpsHeaders.createFromMap(recordMessage.getAttributes());
         return headers;
     }
-
 
 }
