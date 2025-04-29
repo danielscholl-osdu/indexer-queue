@@ -17,7 +17,7 @@
 package org.opengroup.osdu.indexerqueue.aws.api;
 
 
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,7 +44,7 @@ public class NewIndexProcessorTest {
     private final String localhostUrl = "https://localhost";
     private final String StreamString = "This\ris\ra\rstring\r";
 
-    Message message = new Message();
+    Message message = Message.builder().body("body").build();
     @InjectMocks
     NewIndexProcessor processor = new NewIndexProcessor(message, invalidUrl, "indexServiceAccountJWT");
 
@@ -102,9 +102,6 @@ public class NewIndexProcessorTest {
                 this.processor.setTargetURL(localhostUrl);
                 this.processor.setResult(CallableResult.PASS);
 
-                message.setBody("body");
-
-
                 NewIndexProcessor result = (NewIndexProcessor) processor.call();
 
                 Assert.assertEquals(processor, result);
@@ -131,9 +128,6 @@ public class NewIndexProcessorTest {
                 this.processor.setTargetURL(localhostUrl);
                 this.processor.setResult(CallableResult.PASS);
 
-                message.setBody("body");
-
-
                 NewIndexProcessor result = (NewIndexProcessor) processor.call();
 
                 Assert.assertEquals(processor, result);
@@ -145,7 +139,7 @@ public class NewIndexProcessorTest {
 
     @Test
     public void test_Get(){
-        NewIndexProcessor processor2 = new NewIndexProcessor(new Message(), "targetUrl", "indexServiceAccountJWT");
+        NewIndexProcessor processor2 = new NewIndexProcessor(Message.builder().build(), "targetUrl", "indexServiceAccountJWT");
         processor2.setResponse(new StringBuilder());
         Assert.assertEquals(CallableResult.PASS, processor2.getResult());
         Assert.assertNull(processor2.getReceiptHandle());

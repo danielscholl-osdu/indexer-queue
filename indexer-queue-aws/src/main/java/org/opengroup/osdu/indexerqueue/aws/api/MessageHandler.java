@@ -15,8 +15,8 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
 import org.opengroup.osdu.core.common.logging.JaxRsDpsLog;
 
 import java.time.Instant;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class MessageHandler<T> implements Runnable {
     private final BlockingQueue<Message> messagesToHandle;
     private final int maxBatchRequests;
-    private final AmazonSQS sqsClient;
+    private final SqsClient sqsClient;
     private final List<T> toHandle;
     private final Set<String> currentMessageIds;
     private final int maxWaitForMessage;
@@ -40,11 +40,11 @@ public abstract class MessageHandler<T> implements Runnable {
     static final int MAX_WAIT_FOR_MESSAGE_MILLIS = 10000;
     static final int MAX_WAIT_FOR_MESSAGE_BATCH = 10000;
 
-    protected MessageHandler(BlockingQueue<Message> messagesToHandle, int maxBatchRequests, AmazonSQS sqsClient) {
+    protected MessageHandler(BlockingQueue<Message> messagesToHandle, int maxBatchRequests, SqsClient sqsClient) {
         this(messagesToHandle, maxBatchRequests, sqsClient, MAX_WAIT_FOR_MESSAGE_MILLIS, MAX_WAIT_FOR_MESSAGE_BATCH);
     }
 
-    protected MessageHandler(BlockingQueue<Message> messagesToHandle, int maxBatchRequests, AmazonSQS sqsClient, int maxWaitForMessage, int maxWaitForMessageBatch) {
+    protected MessageHandler(BlockingQueue<Message> messagesToHandle, int maxBatchRequests, SqsClient sqsClient, int maxWaitForMessage, int maxWaitForMessageBatch) {
         this.messagesToHandle = messagesToHandle;
         this.maxBatchRequests = maxBatchRequests;
         this.sqsClient = sqsClient;
@@ -55,16 +55,16 @@ public abstract class MessageHandler<T> implements Runnable {
     }
 
     protected abstract T generateHandleRequest(Message message);
-    protected abstract void handleRequestBatch(List<T> batch, AmazonSQS sqsClient);
+    protected abstract void handleRequestBatch(List<T> batch, SqsClient sqsClient);
 
     private boolean processMessageAdd(Message newMessage, Instant current) {
-        boolean shouldAdd = currentMessageIds.add(newMessage.getMessageId());
+        boolean shouldAdd = currentMessageIds.add(newMessage.messageId());
         if (shouldAdd) {
             toHandle.add(generateHandleRequest(newMessage));
             if (oldestCurrentMessage == null)
                 oldestCurrentMessage = current;
         } else {
-            logger.error(String.format("Message with Id %s already exists in batch! Skipping processing!", newMessage.getMessageId()));
+            logger.error(String.format("Message with Id %s already exists in batch! Skipping processing!", newMessage.messageId()));
         }
         return (toHandle.size() >= maxBatchRequests);
     }

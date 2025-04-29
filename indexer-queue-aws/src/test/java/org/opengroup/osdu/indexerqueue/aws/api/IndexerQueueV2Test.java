@@ -16,10 +16,10 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +31,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
-import org.opengroup.osdu.core.aws.sqs.AmazonSQSConfig;
+import org.opengroup.osdu.core.aws.v2.sqs.AmazonSQSConfig;
 import uk.org.webcompere.systemstubs.rules.SystemExitRule;
 import uk.org.webcompere.systemstubs.security.AbortExecutionException;
 
@@ -63,8 +63,8 @@ public class IndexerQueueV2Test {
 
     @Test
     public void test_usesQueueUrlV2() throws InterruptedException {
-        AmazonSQS mockedSqs = Mockito.mock(AmazonSQS.class);
-        ReceiveMessageResult receiveResult = Mockito.mock(ReceiveMessageResult.class);
+        SqsClient mockedSqs = Mockito.mock(SqsClient.class);
+        ReceiveMessageResponse receiveResult = Mockito.mock(ReceiveMessageResponse.class);
         List<Message> messages = new ArrayList<Message>();
         int maxMessages = 12;
         int maxWaitTime = 5;
@@ -90,24 +90,24 @@ public class IndexerQueueV2Test {
                         }
                     });
                 })) {
-                    when(mockedSqs.receiveMessage(any(ReceiveMessageRequest.class))).thenAnswer(new Answer<ReceiveMessageResult>() {
+                    when(mockedSqs.receiveMessage(any(ReceiveMessageRequest.class))).thenAnswer(new Answer<ReceiveMessageResponse>() {
                         @Override
-                        public ReceiveMessageResult answer(InvocationOnMock invocationOnMock) throws Throwable {
+                        public ReceiveMessageResponse answer(InvocationOnMock invocationOnMock) throws Throwable {
                             return receiveResult;
                         }
                     });
-                    when(receiveResult.getMessages()).thenReturn(messages);
+                    when(receiveResult.messages()).thenReturn(messages);
                     IndexerQueueV2 indexerQueueV2 = new IndexerQueueV2();
                     assertThrows(AbortExecutionException.class, indexerQueueV2::run);
                     assertNotEquals(0, (long) exitRule.getExitCode());
 
                     verify(mockedSqs, times(1)).receiveMessage(receiveRequest.capture());
                     ReceiveMessageRequest request = receiveRequest.getValue();
-                    assertEquals(queueUrl, request.getQueueUrl());
-                    assertEquals(maxMessages, request.getMaxNumberOfMessages().intValue());
-                    assertEquals(maxWaitTime, request.getWaitTimeSeconds().intValue());
-                    assertTrue(request.getMessageAttributeNames().contains("All"));
-                    assertTrue(request.getAttributeNames().contains("All"));
+                    assertEquals(queueUrl, request.queueUrl());
+                    assertEquals(maxMessages, request.maxNumberOfMessages().intValue());
+                    assertEquals(maxWaitTime, request.waitTimeSeconds().intValue());
+                    assertTrue(request.messageAttributeNames().contains("All"));
+                    assertTrue(request.messageSystemAttributeNamesAsStrings().contains("All"));
                     envMock.constructed().forEach(envMockConstructed ->
                         verify(envMockConstructed, never()).getQueueUrl()
                     );

@@ -15,7 +15,7 @@
 */
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.Map;
 
@@ -31,6 +31,6 @@ public class ReIndexProcessor extends IndexProcessor {
 
     @Override
     protected String getBody(Message message, Map<String, String> attributes) {
-        return message.getBody();
+        return message.body();
     }
 }

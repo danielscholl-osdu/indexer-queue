@@ -16,8 +16,8 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.*;
 import org.opengroup.osdu.core.common.logging.JaxRsDpsLog;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class IndexerQueueService implements AutoCloseable {
     private final List<Future<?>> workerFutures;
     private final EnvironmentVariables variables;
 
-    public IndexerQueueService(String queueUrl, EnvironmentVariables variables, Supplier<AmazonSQS> sqsSupplier) {
+    public IndexerQueueService(String queueUrl, EnvironmentVariables variables, Supplier<SqsClient> sqsSupplier) {
         int maxMessages = variables.getMaxAllowedMessages();
         int maxThreads = variables.getMaxIndexThreads();
         int maxBatchThreads = variables.getMaxBatchRequestCount();

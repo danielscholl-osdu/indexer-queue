@@ -16,11 +16,11 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 import jakarta.annotation.PostConstruct;
-import org.opengroup.osdu.core.aws.sqs.AmazonSQSConfig;
+import org.opengroup.osdu.core.aws.v2.sqs.AmazonSQSConfig;
 import org.opengroup.osdu.core.common.logging.JaxRsDpsLog;
 
 import java.util.List;
@@ -78,19 +78,21 @@ public abstract class AbstractIndexerQueue {
     public void run() throws InterruptedException {
         try (IndexerQueueService service = new IndexerQueueService(queueUrl, environmentVariables, this::getSqsClient)) {
             int maxMessages = environmentVariables.getMaxAllowedMessages();
-            AmazonSQS sqsClient = getSqsClient();
+            SqsClient sqsClient = getSqsClient();
             boolean shouldLoop = true;
 
-            ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
-            receiveMessageRequest.setMaxNumberOfMessages(maxMessages);
-            receiveMessageRequest.withMessageAttributeNames(ALL_MESSAGES_ATTRIBUTES);
-            receiveMessageRequest.withAttributeNames(ALL_MESSAGES_ATTRIBUTES);
-            receiveMessageRequest.setWaitTimeSeconds(environmentVariables.getMaxWaitTime());
+            ReceiveMessageRequest receiveMessageRequest = ReceiveMessageRequest.builder()
+                    .queueUrl(queueUrl)
+                    .maxNumberOfMessages(maxMessages)
+                    .messageAttributeNames(ALL_MESSAGES_ATTRIBUTES)
+                    .messageSystemAttributeNamesWithStrings(ALL_MESSAGES_ATTRIBUTES)
+                    .waitTimeSeconds(environmentVariables.getMaxWaitTime())
+                    .build();
 
             while (shouldLoop) {
                 try {
                     if (service.getNumMessages() < maxMessages) {
-                        List<Message> retrievedMessages = sqsClient.receiveMessage(receiveMessageRequest).getMessages();
+                        List<Message> retrievedMessages = sqsClient.receiveMessage(receiveMessageRequest).messages();
                         service.putMessages(retrievedMessages);
                     } else {
                         Thread.sleep(environmentVariables.getFullWorkerWaitTime());
@@ -114,7 +116,7 @@ public abstract class AbstractIndexerQueue {
         System.exit(2);
     }
 
-    private AmazonSQS getSqsClient() {
+    private SqsClient getSqsClient() {
         AmazonSQSConfig sqsConfig = new AmazonSQSConfig(environmentVariables.getRegion());
         return sqsConfig.AmazonSQS();
     }

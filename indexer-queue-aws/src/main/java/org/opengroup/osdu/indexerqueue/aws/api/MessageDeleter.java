@@ -15,9 +15,10 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -25,19 +26,19 @@ import java.util.concurrent.BlockingQueue;
 public class MessageDeleter extends MessageHandler<DeleteMessageBatchRequestEntry> {
 
     private final String deleteQueueURL;
-    public MessageDeleter(BlockingQueue<Message> messagesToDelete, int maxBatchRequests, AmazonSQS sqsClient, String deleteQueueURL) {
+    public MessageDeleter(BlockingQueue<Message> messagesToDelete, int maxBatchRequests, SqsClient sqsClient, String deleteQueueURL) {
         super(messagesToDelete, maxBatchRequests, sqsClient);
         this.deleteQueueURL = deleteQueueURL;
     }
 
     @Override
     protected DeleteMessageBatchRequestEntry generateHandleRequest(Message message) {
-        return new DeleteMessageBatchRequestEntry(message.getMessageId(), message.getReceiptHandle());
+        return DeleteMessageBatchRequestEntry.builder().id(message.messageId()).receiptHandle(message.receiptHandle()).build();
     }
 
     @Override
-    protected void handleRequestBatch(List<DeleteMessageBatchRequestEntry> batch, AmazonSQS sqsClient) {
+    protected void handleRequestBatch(List<DeleteMessageBatchRequestEntry> batch, SqsClient sqsClient) {
         logger.info(String.format("Deleting %d messages.", batch.size()));
-        sqsClient.deleteMessageBatch(deleteQueueURL, batch);
+        sqsClient.deleteMessageBatch(DeleteMessageBatchRequest.builder().queueUrl(deleteQueueURL).entries(batch).build());
     }
 }

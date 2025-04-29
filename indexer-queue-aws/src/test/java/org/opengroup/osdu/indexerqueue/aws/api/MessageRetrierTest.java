@@ -16,23 +16,16 @@
 package org.opengroup.osdu.indexerqueue.aws.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.BatchResultErrorEntry;
-import com.amazonaws.services.sqs.model.DeleteMessageBatchRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import com.amazonaws.services.sqs.model.SendMessageBatchResult;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -46,7 +39,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 public class MessageRetrierTest {
 
 
-    private AmazonSQS sqsClient = Mockito.mock(AmazonSQS.class);
+    private SqsClient sqsClient = Mockito.mock(SqsClient.class);
 
     private Message sqsMessage;
     private static final String MESSAGE_BODY = "someMessageBody";
@@ -56,22 +49,20 @@ public class MessageRetrierTest {
 
     @Before
     public void setup() {
-        sqsMessage = new Message();
-        sqsMessage.setBody(MESSAGE_BODY);
-        MESSAGE_ATTRIBUTES.put("someAttribute", new MessageAttributeValue().withStringValue("someValue"));
-        sqsMessage.setMessageAttributes(MESSAGE_ATTRIBUTES);
+        MESSAGE_ATTRIBUTES.put("someAttribute", MessageAttributeValue.builder().stringValue("someValue").build());
+        sqsMessage = Message.builder().body(MESSAGE_BODY).messageAttributes(MESSAGE_ATTRIBUTES).build();
         testingInstance = new MessageRetrier(new ArrayBlockingQueue<>(5), 5, sqsClient, SQS_URL);
     }
 
     @Test
     public void should_createRequestBatchEntry_successfully() {
         SendMessageBatchRequestEntry entry = testingInstance.generateHandleRequest(sqsMessage);
-        String body = entry.getMessageBody();
-        Map<String, MessageAttributeValue> attributes = entry.getMessageAttributes();
+        String body = entry.messageBody();
+        Map<String, MessageAttributeValue> attributes = entry.messageAttributes();
         assertEquals(MESSAGE_BODY, body);
         assertEquals(MESSAGE_ATTRIBUTES.size(), attributes.size());
         for (String key : MESSAGE_ATTRIBUTES.keySet()) {
-            assertEquals(MESSAGE_ATTRIBUTES.get(key).getStringValue(), attributes.get(key).getStringValue());
+            assertEquals(MESSAGE_ATTRIBUTES.get(key).stringValue(), attributes.get(key).stringValue());
         }
     }
 
@@ -79,13 +70,13 @@ public class MessageRetrierTest {
     public void should_sendMessageBatchOver_successfully() {
         SendMessageBatchRequestEntry entry = Mockito.mock(SendMessageBatchRequestEntry.class);
         List<SendMessageBatchRequestEntry> entries = Collections.singletonList(entry);
-        SendMessageBatchResult batchResult = Mockito.mock(SendMessageBatchResult.class);
+        SendMessageBatchResponse batchResult = Mockito.mock(SendMessageBatchResponse.class);
         List<BatchResultErrorEntry> emptyList = Collections.emptyList();
         List<BatchResultErrorEntry> nonEmptyList = Collections.singletonList(Mockito.mock(BatchResultErrorEntry.class));
-        when(batchResult.getFailed()).thenReturn(emptyList).thenReturn(nonEmptyList);
-        when(sqsClient.sendMessageBatch(SQS_URL, entries)).thenReturn(batchResult);
+        when(batchResult.failed()).thenReturn(emptyList).thenReturn(nonEmptyList);
+        when(sqsClient.sendMessageBatch(any(SendMessageBatchRequest.class))).thenReturn(batchResult);
         testingInstance.handleRequestBatch(entries, sqsClient);
         testingInstance.handleRequestBatch(entries, sqsClient);
-        verify(sqsClient, times(2)).sendMessageBatch(SQS_URL, entries);
+        verify(sqsClient, times(2)).sendMessageBatch(any(SendMessageBatchRequest.class));
     }
 }

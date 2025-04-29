@@ -16,8 +16,8 @@
 package org.opengroup.osdu.indexerqueue.aws.api;
 
 
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import org.opengroup.osdu.core.common.logging.JaxRsDpsLog;
 
 import java.time.Instant;
@@ -61,7 +61,7 @@ public class WorkerThread implements Runnable {
 
     private void processMessage(Message incomingMessage) throws InterruptedException {
         long startTime = Instant.now().toEpochMilli();
-        Map<String, MessageAttributeValue> attributes = incomingMessage.getMessageAttributes();
+        Map<String, MessageAttributeValue> attributes = incomingMessage.messageAttributes();
         MessageAttributeValue authorization = attributes.get("authorization");
         if (authorization == null) {
             this.retryMessages.put(incomingMessage);
@@ -69,7 +69,7 @@ public class WorkerThread implements Runnable {
             return;
         }
 
-        String authorizationJWT = authorization.getStringValue();
+        String authorizationJWT = authorization.stringValue();
         MessageAttributeValue reIndexCursor = attributes.get("ReIndexCursor");
         IndexProcessor processor;
         if (reIndexCursor == null) {

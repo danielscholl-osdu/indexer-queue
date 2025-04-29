@@ -20,8 +20,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockedConstruction;
@@ -30,6 +30,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -67,9 +68,8 @@ public class WorkerThreadTest {
 
     @Test
     public void should_sendUnauthorizedMessages_to_retryQueue() throws InterruptedException {
-        Message unauthorizedMessage = new Message();
         String unauthorizedId = "Unauthorized Message ID";
-        unauthorizedMessage.setMessageId(unauthorizedId);
+        Message unauthorizedMessage = Message.builder().messageId(unauthorizedId).build();
         WorkerThread testingImplementation = getWorker();
         Future<?> workerThreadExecutor = executorService.submit(testingImplementation);
         incomingMessages.add(unauthorizedMessage);
@@ -83,9 +83,9 @@ public class WorkerThreadTest {
         assertEquals(0, visibilityMessages.size());
 
         Message receivedMessage = deleteMessages.take();
-        assertEquals(unauthorizedId, receivedMessage.getMessageId());
+        assertEquals(unauthorizedId, receivedMessage.messageId());
         receivedMessage = retryMessages.take();
-        assertEquals(unauthorizedId, receivedMessage.getMessageId());
+        assertEquals(unauthorizedId, receivedMessage.messageId());
     }
 
     private Message getAuthorizedMessage(String messageId) {
@@ -93,14 +93,12 @@ public class WorkerThreadTest {
     }
 
     private Message getAuthorizedMessage(String messageId, String reIndexCursor) {
-        Message authorizedMessage = new Message();
-        authorizedMessage.setMessageId(messageId);
-        Map<String, MessageAttributeValue> messageAttributes = authorizedMessage.getMessageAttributes();
-        messageAttributes.put(AUTHORIZED_KEY, new MessageAttributeValue().withStringValue(AUTHORIZED_TOKEN));
+        Map<String, MessageAttributeValue> messageAttributes = new HashMap<>();
+        messageAttributes.put(AUTHORIZED_KEY, MessageAttributeValue.builder().stringValue(AUTHORIZED_TOKEN).build());
         if (reIndexCursor != null) {
-            messageAttributes.put(REINDEX_KEY, new MessageAttributeValue().withStringValue(reIndexCursor));
+            messageAttributes.put(REINDEX_KEY, MessageAttributeValue.builder().stringValue(reIndexCursor).build());
         }
-        return authorizedMessage;
+        return Message.builder().messageAttributes(messageAttributes).messageId(messageId).build();
     }
 
     @Test
@@ -127,9 +125,9 @@ public class WorkerThreadTest {
         assertEquals(0, visibilityMessages.size());
 
         Message receivedMessage = deleteMessages.take();
-        assertEquals(AUTHORIZED_TOKEN, receivedMessage.getMessageAttributes().get(AUTHORIZED_KEY).getStringValue());
-        assertNull(receivedMessage.getMessageAttributes().get(REINDEX_KEY));
-        assertEquals(newIndexMessageId, receivedMessage.getMessageId());
+        assertEquals(AUTHORIZED_TOKEN, receivedMessage.messageAttributes().get(AUTHORIZED_KEY).stringValue());
+        assertNull(receivedMessage.messageAttributes().get(REINDEX_KEY));
+        assertEquals(newIndexMessageId, receivedMessage.messageId());
     }
 
     @Test
@@ -157,9 +155,9 @@ public class WorkerThreadTest {
         assertEquals(0, visibilityMessages.size());
 
         Message receivedMessage = deleteMessages.take();
-        assertEquals(AUTHORIZED_TOKEN, receivedMessage.getMessageAttributes().get(AUTHORIZED_KEY).getStringValue());
-        assertEquals(reIndexCursor, receivedMessage.getMessageAttributes().get(REINDEX_KEY).getStringValue());
-        assertEquals(reIndexMessageId, receivedMessage.getMessageId());
+        assertEquals(AUTHORIZED_TOKEN, receivedMessage.messageAttributes().get(AUTHORIZED_KEY).stringValue());
+        assertEquals(reIndexCursor, receivedMessage.messageAttributes().get(REINDEX_KEY).stringValue());
+        assertEquals(reIndexMessageId, receivedMessage.messageId());
     }
 
     @Test
@@ -168,9 +166,9 @@ public class WorkerThreadTest {
         Message message = getAuthorizedMessage(failedIndexMessageId);
         try (MockedConstruction<NewIndexProcessor> newIndexProcessor = Mockito.mockConstruction(NewIndexProcessor.class, (mock, context) -> {
             Message messageArgument = ((Message)context.arguments().get(0));
-            assertEquals(failedIndexMessageId, messageArgument.getMessageId());
-            assertEquals(AUTHORIZED_TOKEN, messageArgument.getMessageAttributes().get(AUTHORIZED_KEY).getStringValue());
-            assertNull(messageArgument.getMessageAttributes().get(REINDEX_KEY));
+            assertEquals(failedIndexMessageId, messageArgument.messageId());
+            assertEquals(AUTHORIZED_TOKEN, messageArgument.messageAttributes().get(AUTHORIZED_KEY).stringValue());
+            assertNull(messageArgument.messageAttributes().get(REINDEX_KEY));
             assertEquals(NEWINDEX_URL, context.arguments().get(1));
             assertEquals(AUTHORIZED_TOKEN, context.arguments().get(2));
             when(mock.getResult()).thenReturn(CallableResult.FAIL);
@@ -189,7 +187,7 @@ public class WorkerThreadTest {
             assertEquals(1, visibilityMessages.size());
 
             Message receivedMessage = visibilityMessages.take();
-            assertEquals(failedIndexMessageId, receivedMessage.getMessageId());
+            assertEquals(failedIndexMessageId, receivedMessage.messageId());
         }
     }
 
@@ -200,9 +198,9 @@ public class WorkerThreadTest {
         Message message = getAuthorizedMessage(hungIndexMessageId);
         try (MockedConstruction<NewIndexProcessor> newIndexProcessor = Mockito.mockConstruction(NewIndexProcessor.class, (mock, context) -> {
             Message messageArgument = ((Message)context.arguments().get(0));
-            assertEquals(hungIndexMessageId, messageArgument.getMessageId());
-            assertEquals(AUTHORIZED_TOKEN, messageArgument.getMessageAttributes().get(AUTHORIZED_KEY).getStringValue());
-            assertNull(messageArgument.getMessageAttributes().get(REINDEX_KEY));
+            assertEquals(hungIndexMessageId, messageArgument.messageId());
+            assertEquals(AUTHORIZED_TOKEN, messageArgument.messageAttributes().get(AUTHORIZED_KEY).stringValue());
+            assertNull(messageArgument.messageAttributes().get(REINDEX_KEY));
             assertEquals(NEWINDEX_URL, context.arguments().get(1));
             assertEquals(AUTHORIZED_TOKEN, context.arguments().get(2));
             when(mock.getResult()).thenAnswer(new Answer<Object>() {
@@ -226,7 +224,7 @@ public class WorkerThreadTest {
             assertEquals(1, visibilityMessages.size());
 
             Message receivedMessage = visibilityMessages.take();
-            assertEquals(hungIndexMessageId, receivedMessage.getMessageId());
+            assertEquals(hungIndexMessageId, receivedMessage.messageId());
         }
     }
 }
