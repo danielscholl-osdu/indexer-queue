@@ -24,13 +24,16 @@ The following software have components provided under the terms of this license:
 - AWS Cryptographic Material Providers Library (from https://github.com/aws/aws-cryptographic-material-providers-library)
 - AWS Database Encryption SDK for DynamoDB (from https://github.com/aws/aws-database-encryption-sdk-dynamodb)
 - AWS Event Stream (from https://github.com/awslabs/aws-eventstream-java)
+- AWS Java SDK :: AWS CRT Core (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: AWS Core (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Annotations (from https://repo1.maven.org/maven2/software/amazon/awssdk/annotations)
+- AWS Java SDK :: Arns (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Auth (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Checksums (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Checksums SPI (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Core :: Protocols :: AWS Json Protocol (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Core :: Protocols :: AWS Query Protocol (from https://aws.amazon.com/sdkforjava)
+- AWS Java SDK :: Core :: Protocols :: AWS Xml Protocol (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Core :: Protocols :: Json Utils (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Core :: Protocols :: Protocol Core (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: DynamoDB :: Enhanced Client (from https://aws.amazon.com/sdkforjava)
@@ -53,8 +56,12 @@ The following software have components provided under the terms of this license:
 - AWS Java SDK :: Services :: AWS STS (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Services :: AWS Secrets Manager (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Services :: AWS Simple Systems Management (SSM) (from https://aws.amazon.com/sdkforjava)
+- AWS Java SDK :: Services :: Amazon CloudWatch Logs (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Services :: Amazon Cognito Identity Provider Service (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Services :: Amazon DynamoDB (from https://aws.amazon.com/sdkforjava)
+- AWS Java SDK :: Services :: Amazon S3 (from https://aws.amazon.com/sdkforjava)
+- AWS Java SDK :: Services :: Amazon SNS (from https://aws.amazon.com/sdkforjava)
+- AWS Java SDK :: Services :: Amazon SQS (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Third Party :: Jackson-core (from https://aws.amazon.com/sdkforjava)
 - AWS Java SDK :: Utilities (from https://repo1.maven.org/maven2/software/amazon/awssdk/utils)
 - AWS Java SDK for AWS KMS (from https://aws.amazon.com/sdkforjava)
@@ -174,7 +181,7 @@ The following software have components provided under the terms of this license:
 - Netty/Incubator/Codec/Classes/Quic (from <https://repo1.maven.org/maven2/io/netty/incubator/netty-incubator-codec-classes-quic>, https://repo1.maven.org/maven2/io/netty/incubator/netty-incubator-codec-classes-quic)
 - Netty/Resolver (from https://repo1.maven.org/maven2/io/netty/netty-resolver)
 - Netty/Resolver/DNS (from https://repo1.maven.org/maven2/io/netty/netty-resolver-dns)
-- Netty/Resolver/DNS/Classes/MacOS (from https://repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos, https://repository.cloudera.com/artifactory/cloudera-repos/io/netty/netty-resolver-dns-classes-macos)
+- Netty/Resolver/DNS/Classes/MacOS (from https://repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos)
 - Netty/TomcatNative [BoringSSL - Static] (from https://github.com/netty/netty-tcnative/netty-tcnative-boringssl-static/)
 - Netty/TomcatNative [OpenSSL - Classes] (from https://repo1.maven.org/maven2/io/netty/netty-tcnative-classes)
 - Netty/Transport (from https://repo1.maven.org/maven2/io/netty/netty-transport)
@@ -211,6 +218,7 @@ The following software have components provided under the terms of this license:
 - RESTEasy JAX-RS Implementation (from https://repo1.maven.org/maven2/org/jboss/resteasy/resteasy-jaxrs)
 - RESTEasy Jackson 2 Provider (from https://repo1.maven.org/maven2/org/jboss/resteasy/resteasy-jackson2-provider)
 - RESTEasy Validator Provider BV 1.1 (from http://maven.apache.org)
+- RabbitMQ Java Client (from http://www.rabbitmq.com, https://www.rabbitmq.com)
 - Reactive Streams Netty driver (from https://github.com/reactor/reactor-netty)
 - Redisson (from http://redisson.org, https://redisson.pro)
 - Retrofit (from https://github.com/square/retrofit, https://repo1.maven.org/maven2/com/squareup/retrofit2/retrofit)
@@ -225,9 +233,11 @@ The following software have components provided under the terms of this license:
 - SmallRye Config: Core (from https://repo1.maven.org/maven2/io/smallrye/config/smallrye-config-core)
 - Smithy :: Dafny :: Conversion (from https://github.com/smithy-lang/smithy)
 - SnakeYAML (from http://code.google.com/p/snakeyaml/, http://www.snakeyaml.org, https://bitbucket.org/snakeyaml/snakeyaml)
+- Spring AMQP Core (from https://github.com/spring-projects/spring-amqp, https://projects.spring.io/spring-amqp)
 - Spring AOP (from http://www.springframework.org, https://github.com/spring-projects/spring-framework, https://repo1.maven.org/maven2/org/springframework/spring-aop)
 - Spring Beans (from http://www.springframework.org, https://github.com/SpringSource/spring-framework, https://github.com/spring-projects/spring-framework, https://repo1.maven.org/maven2/org/springframework/spring-beans)
 - Spring Boot (from https://projects.spring.io/spring-boot/#/spring-boot-parent/spring-boot, https://spring.io/projects/spring-boot)
+- Spring Boot AMPQ Starter (from http://projects.spring.io/spring-boot/, https://projects.spring.io/spring-boot/#/spring-boot-parent/spring-boot-starters/spring-boot-starter-amqp, https://spring.io/projects/spring-boot)
 - Spring Boot AOP Starter (from http://projects.spring.io/spring-boot/, https://spring.io/projects/spring-boot)
 - Spring Boot Actuator (from http://projects.spring.io/spring-boot/, https://spring.io/projects/spring-boot)
 - Spring Boot Actuator AutoConfigure (from https://projects.spring.io/spring-boot/#/spring-boot-parent/spring-boot-actuator-autoconfigure, https://spring.io/projects/spring-boot)
@@ -256,6 +266,7 @@ The following software have components provided under the terms of this license:
 - Spring Expression Language (SpEL) (from https://github.com/SpringSource/spring-framework, https://github.com/spring-projects/spring-framework, https://repo1.maven.org/maven2/org/springframework/spring-expression)
 - Spring JMS (from http://www.springframework.org, https://github.com/SpringSource/spring-framework, https://github.com/spring-projects/spring-framework, https://repo1.maven.org/maven2/org/springframework/spring-jms)
 - Spring Messaging (from https://github.com/spring-projects/spring-framework)
+- Spring RabbitMQ Support (from https://github.com/spring-projects/spring-amqp, https://projects.spring.io/spring-amqp)
 - Spring Retry (from http://www.springsource.org, https://github.com/spring-projects/spring-retry)
 - Spring Security - Core (from http://spring.io/spring-security, https://repo1.maven.org/maven2/org/springframework/security/spring-security-core, https://spring.io/projects/spring-security, https://spring.io/spring-security)
 - Spring Security - Namespace Configuration Module (from http://spring.io/spring-security, https://repo1.maven.org/maven2/org/springframework/security/spring-security-config, https://spring.io/projects/spring-security, https://spring.io/spring-security)
@@ -290,6 +301,7 @@ The following software have components provided under the terms of this license:
 - swagger-core (from https://repo1.maven.org/maven2/io/swagger/core/v3/swagger-core, https://repo1.maven.org/maven2/io/swagger/swagger-core)
 - swagger-jaxrs (from https://repo1.maven.org/maven2/io/swagger/swagger-jaxrs)
 - swagger-models (from https://repo1.maven.org/maven2/io/swagger/core/v3/swagger-models, https://repo1.maven.org/maven2/io/swagger/swagger-models)
+- tomcat-annotations-api (from http://tomcat.apache.org/, https://tomcat.apache.org/)
 - tomcat-embed-core (from http://tomcat.apache.org/)
 - tomcat-embed-el (from http://tomcat.apache.org/, https://tomcat.apache.org/)
 - tomcat-embed-websocket (from http://tomcat.apache.org/, https://tomcat.apache.org/)
@@ -362,6 +374,7 @@ The following software have components provided under the terms of this license:
 - Hibernate Validator (from https://hibernate.org/validator, https://repo1.maven.org/maven2/org/hibernate/hibernate-validator, https://repo1.maven.org/maven2/org/hibernate/validator/hibernate-validator)
 - LatencyUtils (from http://latencyutils.github.io/LatencyUtils/)
 - Netty/Common (from https://repo1.maven.org/maven2/io/netty/netty-common)
+- RabbitMQ Java Client (from http://www.rabbitmq.com, https://www.rabbitmq.com)
 - Redisson (from http://redisson.org, https://redisson.pro)
 - reactive-streams (from http://www.reactive-streams.org/)
 
@@ -594,6 +607,20 @@ The following software have components provided under the terms of this license:
 - msal4j (from https://github.com/AzureAD/microsoft-authentication-library-for-java)
 - msal4j-brokers (from https://github.com/AzureAD/microsoft-authentication-library-for-java)
 - msal4j-persistence-extension (from https://github.com/AzureAD/microsoft-authentication-extensions-for-java, https://github.com/AzureAD/microsoft-authentication-library-for-java)
+
+========================================================================
+MPL-2.0
+========================================================================
+The following software have components provided under the terms of this license:
+
+- RabbitMQ Java Client (from http://www.rabbitmq.com, https://www.rabbitmq.com)
+
+========================================================================
+RSA-MD
+========================================================================
+The following software have components provided under the terms of this license:
+
+- AWS Java SDK :: Services :: Amazon SQS (from https://aws.amazon.com/sdkforjava)
 
 ========================================================================
 SunPro

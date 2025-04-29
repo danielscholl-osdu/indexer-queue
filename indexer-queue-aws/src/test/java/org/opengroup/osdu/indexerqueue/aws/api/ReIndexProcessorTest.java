@@ -16,8 +16,7 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +42,7 @@ public class ReIndexProcessorTest {
     private final String invalidUrl = "targetUrl_invalid";
     private final String localhostUrl = "https://localhost";
 
-    Message message = new Message();
+    Message message = Message.builder().body("body").build();
     @InjectMocks
     ReIndexProcessor processor = new ReIndexProcessor(message, invalidUrl, "indexServiceAccountJWT");
 
@@ -77,8 +76,6 @@ public class ReIndexProcessorTest {
         this.processor.setTargetURL(localhostUrl);
         this.processor.setResult(CallableResult.PASS);
 
-        message.setBody("body");
-
         ReIndexProcessor result = (ReIndexProcessor) processor.call();
 
         Assert.assertEquals(processor, result);
@@ -99,9 +96,6 @@ public class ReIndexProcessorTest {
 
             this.processor.setTargetURL(localhostUrl);
             this.processor.setResult(CallableResult.PASS);
-
-            message.setBody("body");
-
 
             ReIndexProcessor result = (ReIndexProcessor) processor.call();
 
@@ -126,9 +120,6 @@ public class ReIndexProcessorTest {
             this.processor.setTargetURL(localhostUrl);
             this.processor.setResult(CallableResult.PASS);
 
-            message.setBody("body");
-
-
             ReIndexProcessor result = (ReIndexProcessor) processor.call();
 
             Assert.assertEquals(processor, result);
@@ -146,7 +137,7 @@ public class ReIndexProcessorTest {
 
     @Test
     public void test_Get(){
-        ReIndexProcessor processor2 = new ReIndexProcessor(new Message(), "targetUrl", "indexServiceAccountJWT");
+        ReIndexProcessor processor2 = new ReIndexProcessor(Message.builder().build(), "targetUrl", "indexServiceAccountJWT");
         processor2.setResponse(new StringBuilder());
         Assert.assertEquals(CallableResult.PASS, processor2.getResult());
         Assert.assertNull(processor2.getReceiptHandle());

@@ -124,7 +124,7 @@
         <dependency>
             <groupId>org.opengroup.osdu.core.aws</groupId>
             <artifactId>os-core-lib-aws</artifactId>
-            <version>4.0.0</version>
+            <version>5.1.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>

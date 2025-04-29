@@ -15,7 +15,7 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.opengroup.osdu.core.common.logging.JaxRsDpsLog;
@@ -48,7 +48,7 @@ public abstract class IndexProcessor implements Callable<IndexProcessor> {
     protected IndexProcessor(Message message, String targetUrl, String indexServiceAccountJWT){
         this.message = message;
         this.targetURL = targetUrl;
-        this.receiptHandle = message.getReceiptHandle();
+        this.receiptHandle = message.receiptHandle();
         result = CallableResult.PASS;
         this.indexerServiceAccountJWT = indexServiceAccountJWT;
     }
@@ -56,7 +56,7 @@ public abstract class IndexProcessor implements Callable<IndexProcessor> {
     protected IndexProcessor(Message message, String targetUrl, String indexServiceAccountJWT, CallableResult result){
         this.message = message;
         this.targetURL = targetUrl;
-        this.receiptHandle = message.getReceiptHandle();
+        this.receiptHandle = message.receiptHandle();
         this.result = result;
         this.indexerServiceAccountJWT = indexServiceAccountJWT;
     }
@@ -120,19 +120,19 @@ public abstract class IndexProcessor implements Callable<IndexProcessor> {
 
     private Map<String, String> getMessageAttributes(Message message) {
         return message
-            .getMessageAttributes()
-            .entrySet()
-            .stream()
-            .collect(Collectors.toMap(Map.Entry::getKey,
+                .messageAttributes()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
                                       attribute -> attribute
-                                          .getValue()
-                                          .getStringValue()));
+                                              .getValue()
+                                              .stringValue()));
     }
 
     @Override
     public IndexProcessor call() {
         try {
-            this.messageId = message.getMessageId();
+            this.messageId = message.messageId();
             logger.info(String.format("Processing message: %s with type: %s", this.messageId, this.getType()));
 
             Map<String, String> attributes = getMessageAttributes(message);
@@ -145,7 +145,7 @@ public abstract class IndexProcessor implements Callable<IndexProcessor> {
             getResponse(connection);
         } catch (Exception e) {
             StringBuilder errorMessage = new StringBuilder(e.getMessage());
-            errorMessage.append(String.format("%nCould not send %s message%nThis message had body: %s%n", this.getType(), message.getBody()));
+            errorMessage.append(String.format("%nCould not send %s message%nThis message had body: %s%n", this.getType(), message.body()));
             result = CallableResult.FAIL;
             logger.error(errorMessage.toString(), e);
             exception = e;

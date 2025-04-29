@@ -18,8 +18,8 @@ package org.opengroup.osdu.indexerqueue.aws.api;
 
 
 import org.springframework.test.util.ReflectionTestUtils;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.*;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +39,7 @@ public class IndexerQueueServiceTest {
 
 
     @Mock
-    private AmazonSQS sqsClient = mock(AmazonSQS.class);
+    private SqsClient sqsClient = mock(SqsClient.class);
 
     private static final int MAX_WAIT_TIME = 10;
     private static final int MAX_THREADS = 20;
@@ -60,7 +60,7 @@ public class IndexerQueueServiceTest {
 
     private MockedConstruction<MessageVisibilityModifier> visiblityMockedConstruction;
 
-    private AmazonSQS sqsSupplier() {
+    private SqsClient sqsSupplier() {
         return sqsClient;
     }
 
@@ -105,7 +105,7 @@ public class IndexerQueueServiceTest {
         int numMessages = 10;
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < numMessages; i++) {
-            Message msg = new Message();
+            Message msg = Message.builder().build();
             messages.add(msg);
         }
 

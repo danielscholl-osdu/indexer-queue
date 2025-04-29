@@ -15,9 +15,8 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import io.swagger.models.auth.In;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -34,8 +33,6 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageHandlerTest {
@@ -46,20 +43,20 @@ public class MessageHandlerTest {
 
     private static class MessageHandlerImplTest extends MessageHandler<String> {
         ArrayList<List<String>> requestBatches = new ArrayList<>();
-        final AmazonSQS sqsClient;
+        final SqsClient sqsClient;
 
-        protected MessageHandlerImplTest(BlockingQueue<Message> messagesToHandle, AmazonSQS sqsClient) {
+        protected MessageHandlerImplTest(BlockingQueue<Message> messagesToHandle, SqsClient sqsClient) {
             super(messagesToHandle, MAX_BATCH_REQUESTS, sqsClient, MAX_WAIT_FOR_MESSAGE, MessageHandlerTest.MAX_WAIT_FOR_MESSAGE_BATCH);
             this.sqsClient = sqsClient;
         }
 
         @Override
         protected String generateHandleRequest(Message message) {
-            return message.getBody();
+            return message.body();
         }
 
         @Override
-        protected void handleRequestBatch(List<String> batch, AmazonSQS sqsClient) {
+        protected void handleRequestBatch(List<String> batch, SqsClient sqsClient) {
             assertEquals(this.sqsClient, sqsClient);
             requestBatches.add(new ArrayList<>(batch));
             System.out.println(batch.size());
@@ -78,7 +75,7 @@ public class MessageHandlerTest {
         for (int i = 0; i < numMessages; ++i) {
             messageBodies.add(String.format("%d test message body.", i));
         }
-        List<Message> messages = messageBodies.stream().map(body -> new Message().withBody(body).withMessageId(body)).collect(Collectors.toList());
+        List<Message> messages = messageBodies.stream().map(body -> Message.builder().body(body).messageId(body).build()).collect(Collectors.toList());
 
         messagesToHandle.addAll(messages);
 
@@ -101,7 +98,7 @@ public class MessageHandlerTest {
 
     @Test
     public void should_correctlyHandle_whenBatchReachesExpire() throws InterruptedException {
-        AmazonSQS amazonSqsClient = Mockito.mock(AmazonSQS.class);
+        SqsClient amazonSqsClient = Mockito.mock(SqsClient.class);
         BlockingQueue<Message> messagesToHandle = new ArrayBlockingQueue<>(MAX_BATCH_REQUESTS);
 
         MessageHandlerImplTest impl = new MessageHandlerImplTest(messagesToHandle, amazonSqsClient);
@@ -113,7 +110,7 @@ public class MessageHandlerTest {
 
     @Test
     public void should_correctlyHandle_whenBatchIsReached() throws InterruptedException {
-        AmazonSQS amazonSqsClient = Mockito.mock(AmazonSQS.class);
+        SqsClient amazonSqsClient = Mockito.mock(SqsClient.class);
         BlockingQueue<Message> messagesToHandle = new ArrayBlockingQueue<>(MAX_BATCH_REQUESTS);
 
         MessageHandlerImplTest impl = new MessageHandlerImplTest(messagesToHandle, amazonSqsClient);
@@ -125,18 +122,16 @@ public class MessageHandlerTest {
 
     @Test
     public void should_correctlyHandle_whenMultipleMessagesWithSameId_areSent() throws InterruptedException {
-        AmazonSQS amazonSqsClient = Mockito.mock(AmazonSQS.class);
+        SqsClient amazonSqsClient = Mockito.mock(SqsClient.class);
         int maxMessages = 3;
         BlockingQueue<Message> messagesToHandle = new ArrayBlockingQueue<>(maxMessages);
 
         MessageHandlerImplTest impl = new MessageHandlerImplTest(messagesToHandle, amazonSqsClient);
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<?> threadFuture = executorService.submit(impl);
-        Message toAdd = new Message();
         String messageId = "testSameId";
         String messageBody = "Message with same identifier";
-        toAdd.setMessageId(messageId);
-        toAdd.setBody(messageBody);
+        Message toAdd = Message.builder().messageId(messageId).body(messageBody).build();
         messagesToHandle.put(toAdd);
         messagesToHandle.put(toAdd);
         messagesToHandle.put(toAdd);
@@ -149,7 +144,7 @@ public class MessageHandlerTest {
 
     @Test
     public void should_correctlyReset_whenMultipleBatchesAreSent() throws InterruptedException {
-        AmazonSQS amazonSqsClient = Mockito.mock(AmazonSQS.class);
+        SqsClient amazonSqsClient = Mockito.mock(SqsClient.class);
         int maxMessages = 15;
         BlockingQueue<Message> messagesToHandle = new ArrayBlockingQueue<>(maxMessages);
 

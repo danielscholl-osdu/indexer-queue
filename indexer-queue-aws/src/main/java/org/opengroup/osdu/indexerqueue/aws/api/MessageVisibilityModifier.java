@@ -15,9 +15,10 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
+import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -26,22 +27,23 @@ public class MessageVisibilityModifier extends MessageHandler<ChangeMessageVisib
 
     private final String sqsQueueURL;
 
-    public MessageVisibilityModifier(BlockingQueue<Message> messagesToHandle, int maxBatchRequests, AmazonSQS sqsClient, String sqsQueueURL) {
+    public MessageVisibilityModifier(BlockingQueue<Message> messagesToHandle, int maxBatchRequests,SqsClient sqsClient, String sqsQueueURL) {
         super(messagesToHandle, maxBatchRequests, sqsClient);
         this.sqsQueueURL = sqsQueueURL;
     }
 
     @Override
     protected ChangeMessageVisibilityBatchRequestEntry generateHandleRequest(Message message) {
-        ChangeMessageVisibilityBatchRequestEntry entry = new ChangeMessageVisibilityBatchRequestEntry(message.getMessageId(), message.getReceiptHandle());
-        entry.setVisibilityTimeout(getExponentialTimeOutWindow(message));
-        return entry;
+        return ChangeMessageVisibilityBatchRequestEntry.builder().id(message.messageId())
+                .receiptHandle(message.receiptHandle())
+                .visibilityTimeout(getExponentialTimeOutWindow(message))
+                .build();
     }
 
     private int getExponentialTimeOutWindow(Message message){
         int receiveCount;
         try {
-           receiveCount = Integer.parseInt(message.getAttributes().get("ApproximateReceiveCount"));
+           receiveCount = Integer.parseInt(message.attributes().get("ApproximateReceiveCount"));
         } catch (NumberFormatException e) {
             receiveCount = 0;
         }
@@ -56,7 +58,7 @@ public class MessageVisibilityModifier extends MessageHandler<ChangeMessageVisib
         }
     }
     @Override
-    protected void handleRequestBatch(List<ChangeMessageVisibilityBatchRequestEntry> batch, AmazonSQS sqsClient) {
-        sqsClient.changeMessageVisibilityBatch(sqsQueueURL, batch);
+    protected void handleRequestBatch(List<ChangeMessageVisibilityBatchRequestEntry> batch, SqsClient sqsClient) {
+        sqsClient.changeMessageVisibilityBatch(ChangeMessageVisibilityBatchRequest.builder().queueUrl(sqsQueueURL).entries(batch).build());
     }
 }

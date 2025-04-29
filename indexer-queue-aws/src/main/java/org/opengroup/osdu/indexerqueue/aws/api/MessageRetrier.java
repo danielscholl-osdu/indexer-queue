@@ -15,10 +15,11 @@
 
 package org.opengroup.osdu.indexerqueue.aws.api;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.SendMessageBatchRequestEntry;
-import com.amazonaws.services.sqs.model.SendMessageBatchResult;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchResponse;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -27,21 +28,21 @@ public class MessageRetrier extends MessageHandler<SendMessageBatchRequestEntry>
 
     private final String retryQueueURL;
 
-    public MessageRetrier(BlockingQueue<Message> messagesToRetry, int maxBatchRequests, AmazonSQS sqsClient, String retryQueueURL) {
+    public MessageRetrier(BlockingQueue<Message> messagesToRetry, int maxBatchRequests, SqsClient sqsClient, String retryQueueURL) {
         super(messagesToRetry, maxBatchRequests, sqsClient);
         this.retryQueueURL = retryQueueURL;
     }
 
     @Override
     protected SendMessageBatchRequestEntry generateHandleRequest(Message message) {
-        return new SendMessageBatchRequestEntry().withMessageBody(message.getBody()).withMessageAttributes(message.getMessageAttributes());
+        return SendMessageBatchRequestEntry.builder().messageBody(message.body()).messageAttributes(message.messageAttributes()).build();
     }
 
     @Override
-    protected void handleRequestBatch(List<SendMessageBatchRequestEntry> batch, AmazonSQS sqsClient) {
-        SendMessageBatchResult response = sqsClient.sendMessageBatch(retryQueueURL, batch);
-        logger.info(String.format("%s Index Messages Dead Lettered", response.getSuccessful().size()));
-        int errored = response.getFailed().size();
+    protected void handleRequestBatch(List<SendMessageBatchRequestEntry> batch, SqsClient sqsClient) {
+        SendMessageBatchResponse response = sqsClient.sendMessageBatch(SendMessageBatchRequest.builder().queueUrl(retryQueueURL).entries(batch).build());
+        logger.info(String.format("%s Index Messages Dead Lettered", response.successful().size()));
+        int errored = response.failed().size();
         if (errored > 0) {
             logger.error(String.format("%d Index Messages could not be Dead Lettered", errored));
         }

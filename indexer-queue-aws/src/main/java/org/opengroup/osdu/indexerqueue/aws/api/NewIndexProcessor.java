@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.util.*;
 
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 
 public class NewIndexProcessor extends IndexProcessor {
@@ -47,8 +47,8 @@ public class NewIndexProcessor extends IndexProcessor {
     @Override
     protected String getBody(Message message, Map<String, String> attributes) throws JsonProcessingException {
         RecordChangedMessages convertedMessage = new RecordChangedMessages();
-        convertedMessage.data = message.getBody();
-        convertedMessage.messageId = message.getMessageId();
+        convertedMessage.data = message.body();
+        convertedMessage.messageId = message.messageId();
 
         convertedMessage.attributes = attributes;
         return mapper.writeValueAsString(convertedMessage);

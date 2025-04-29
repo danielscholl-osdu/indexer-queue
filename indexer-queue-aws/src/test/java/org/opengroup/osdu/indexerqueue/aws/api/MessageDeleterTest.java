@@ -20,10 +20,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageBatchRequest;
-import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
-import com.amazonaws.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageBatchRequestEntry;
+import software.amazon.awssdk.services.sqs.model.Message;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,10 +39,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 @RunWith(MockitoJUnitRunner.class)
 public class MessageDeleterTest {
 
-    private final AmazonSQS sqsClient = Mockito.mock(AmazonSQS.class);
+    private final SqsClient sqsClient = Mockito.mock(SqsClient.class);
 
     @Captor
-    private ArgumentCaptor<List<DeleteMessageBatchRequestEntry>> requestCaptor;
+    private ArgumentCaptor<DeleteMessageBatchRequest> requestCaptor;
 
     private Message sqsMessage;
     private static final String HANDLER = "someHandlerURL";
@@ -52,26 +52,24 @@ public class MessageDeleterTest {
 
     @Before
     public void setup() {
-        sqsMessage = new Message();
-        sqsMessage.setMessageId(MESSAGE_ID);
-        sqsMessage.setReceiptHandle(HANDLER);
+        sqsMessage = Message.builder().messageId(MESSAGE_ID).receiptHandle(HANDLER).build();
         testingInstance = new MessageDeleter(new ArrayBlockingQueue<>(5), 5, sqsClient, SQS_URL);
     }
 
     @Test
     public void should_createMessageDeleteBatchEntry_correctly() {
         DeleteMessageBatchRequestEntry deleteEntry = testingInstance.generateHandleRequest(sqsMessage);
-        assertEquals(HANDLER, deleteEntry.getReceiptHandle());
-        assertEquals(MESSAGE_ID, deleteEntry.getId());
+        assertEquals(HANDLER, deleteEntry.receiptHandle());
+        assertEquals(MESSAGE_ID, deleteEntry.id());
     }
 
     @Test
     public void should_deleteMessageBatchEntry_correctly() {
         DeleteMessageBatchRequestEntry entry = Mockito.mock(DeleteMessageBatchRequestEntry.class);
         testingInstance.handleRequestBatch(Collections.singletonList(entry), sqsClient);
-        verify(sqsClient, times(1)).deleteMessageBatch(eq(SQS_URL), requestCaptor.capture());
-        List<DeleteMessageBatchRequestEntry> entries = requestCaptor.getValue();
-        assertEquals(1, entries.size());
-        assertEquals(entry, entries.get(0));
+        verify(sqsClient, times(1)).deleteMessageBatch(requestCaptor.capture());
+        DeleteMessageBatchRequest request = requestCaptor.getValue();
+        assertEquals(1, request.entries().size());
+        assertEquals(entry, request.entries().get(0));
     }
 }
