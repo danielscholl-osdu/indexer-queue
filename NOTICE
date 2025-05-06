@@ -164,6 +164,7 @@ The following software have components provided under the terms of this license:
 - Metrics Core (from https://repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core)
 - MicroProfile Config API (from https://repo1.maven.org/maven2/org/eclipse/microprofile/config/microprofile-config-api)
 - Microsoft Azure Java Core Library (from https://github.com/Azure/azure-sdk-for-java)
+- Microsoft Azure Java XML Library (from https://github.com/Azure/azure-sdk-for-java)
 - Microsoft Azure Netty HTTP Client Library (from https://github.com/Azure/azure-sdk-for-java)
 - Microsoft Azure SDK for SQL API of Azure Cosmos DB Service (from https://github.com/Azure/azure-sdk-for-java)
 - Mockito (from http://mockito.org, http://www.mockito.org, https://github.com/mockito/mockito)
@@ -665,6 +666,7 @@ The following software have components provided under the terms of this license:
 - AOP alliance (from http://aopalliance.sourceforge.net)
 - JBoss Logging 3 (from http://www.jboss.org)
 - JSON in Java (from https://github.com/douglascrockford/JSON-java)
+- RESTEasy Client API (from https://repo1.maven.org/maven2/org/jboss/resteasy/resteasy-client-api)
 - RESTEasy JAX-RS Implementation (from https://repo1.maven.org/maven2/org/jboss/resteasy/resteasy-jaxrs)
 - RESTEasy Validator Provider BV 1.1 (from http://maven.apache.org)
 

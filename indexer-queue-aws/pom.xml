@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.7</version>
+        <version>3.3.11</version>
         <relativePath></relativePath>
     </parent>
 
@@ -91,7 +91,7 @@
         <aws.version>1.12.738</aws.version>
         <deployment.environment>dev</deployment.environment>
         <spring-webmvc.version>6.1.16</spring-webmvc.version>
-        <netty.version>4.1.118.Final</netty.version>
+        <netty.version>4.1.119.Final</netty.version>
     </properties>
 
     <dependencies>
