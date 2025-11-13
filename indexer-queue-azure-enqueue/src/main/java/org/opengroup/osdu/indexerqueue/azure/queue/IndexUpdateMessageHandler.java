@@ -73,6 +73,9 @@ public class IndexUpdateMessageHandler implements IIndexUpdateMessageHandler {
       indexWorkerRequest.setHeader(DpsHeaders.AUTHORIZATION, this.serviceAccountJwtClient.getIdToken(att.get(DpsHeaders.DATA_PARTITION_ID)));
       indexWorkerRequest.setHeader(DpsHeaders.DATA_PARTITION_ID, att.get(DpsHeaders.DATA_PARTITION_ID));
       indexWorkerRequest.setHeader(DpsHeaders.CORRELATION_ID, att.get(DpsHeaders.CORRELATION_ID));
+      if (att.containsKey(DpsHeaders.COLLABORATION)) {
+          indexWorkerRequest.setHeader(DpsHeaders.COLLABORATION, att.get(DpsHeaders.COLLABORATION));
+      }
 
       CloseableHttpResponse response = indexWorkerClient.execute(indexWorkerRequest);
 
