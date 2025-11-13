@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengroup.osdu.core.common.model.http.AppException;
+import org.opengroup.osdu.core.common.model.http.DpsHeaders;
 import org.opengroup.osdu.core.common.model.search.RecordChangedMessages;
 import org.opengroup.osdu.indexerqueue.azure.config.ThreadDpsHeaders;
 import java.io.IOException;
@@ -101,6 +102,62 @@ public class RecordsChangedSbMessageBuilderTest {
         Map<String, String> attributesMap = recordChangedMessages.getAttributes();
         Assertions.assertTrue(attributesMap.containsKey("ancestry_kinds"));
         Assertions.assertEquals(ancestry_kind, attributesMap.get("ancestry_kinds"));
+    }
+
+    @Test
+    public void shouldIncludeCollaborationInAttributes_WhenPresent() throws IOException {
+        String requestBodyWithCollaboration = "{\"message\":{\"data\":[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}],\"account-id\":\"common\",\"data-partition-id\":\"common\",\"correlation-id\":\"ee85038e-4510-49d9-b2ec-3651315a4d00\",\"x-collaboration\":\"collaboration_value\"}}";
+        String expectedCollaboration = "collaboration_value";
+        String expectedCorrelationId = "ee85038e-4510-49d9-b2ec-3651315a4d00";
+        String expectedDataPartitionId = "common";
+        String expectedData = "[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}]";
+
+        RecordChangedMessages recordChangedMessages = sut.getServiceBusMessage(requestBodyWithCollaboration, messageId);
+
+        Assertions.assertEquals(expectedCorrelationId, recordChangedMessages.getCorrelationId());
+        Assertions.assertEquals(expectedDataPartitionId, recordChangedMessages.getDataPartitionId());
+        Assertions.assertNotNull(recordChangedMessages.getData());
+        Assertions.assertEquals(expectedData, recordChangedMessages.getData());
+
+        Map<String, String> attributesMap = recordChangedMessages.getAttributes();
+        Assertions.assertTrue(attributesMap.containsKey(DpsHeaders.COLLABORATION));
+        Assertions.assertEquals(expectedCollaboration, attributesMap.get(DpsHeaders.COLLABORATION));
+    }
+
+    @Test
+    public void shouldNotIncludeCollaborationInAttributes_WhenMissing() throws IOException {
+        String requestBodyWithoutCollaboration = "{\"message\":{\"data\":[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}],\"account-id\":\"common\",\"data-partition-id\":\"common\",\"correlation-id\":\"ee85038e-4510-49d9-b2ec-3651315a4d00\"}}";
+        String expectedCorrelationId = "ee85038e-4510-49d9-b2ec-3651315a4d00";
+        String expectedDataPartitionId = "common";
+        String expectedData = "[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}]";
+
+        RecordChangedMessages recordChangedMessages = sut.getServiceBusMessage(requestBodyWithoutCollaboration, messageId);
+
+        Assertions.assertEquals(expectedCorrelationId, recordChangedMessages.getCorrelationId());
+        Assertions.assertEquals(expectedDataPartitionId, recordChangedMessages.getDataPartitionId());
+        Assertions.assertNotNull(recordChangedMessages.getData());
+        Assertions.assertEquals(expectedData, recordChangedMessages.getData());
+
+        Map<String, String> attributesMap = recordChangedMessages.getAttributes();
+        Assertions.assertFalse(attributesMap.containsKey(DpsHeaders.COLLABORATION));
+    }
+
+    @Test
+    public void shouldNotIncludeCollaborationInAttributes_WhenNull() throws IOException {
+        String requestBodyWithNullCollaboration = "{\"message\":{\"data\":[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}],\"account-id\":\"common\",\"data-partition-id\":\"common\",\"correlation-id\":\"ee85038e-4510-49d9-b2ec-3651315a4d00\",\"x-collaboration\":null}}";
+        String expectedCorrelationId = "ee85038e-4510-49d9-b2ec-3651315a4d00";
+        String expectedDataPartitionId = "common";
+        String expectedData = "[{\"id\":\"common:welldb:raj21\",\"kind\":\"common:welldb:wellbore:1.0.0\",\"op\":\"create\"}]";
+
+        RecordChangedMessages recordChangedMessages = sut.getServiceBusMessage(requestBodyWithNullCollaboration, messageId);
+
+        Assertions.assertEquals(expectedCorrelationId, recordChangedMessages.getCorrelationId());
+        Assertions.assertEquals(expectedDataPartitionId, recordChangedMessages.getDataPartitionId());
+        Assertions.assertNotNull(recordChangedMessages.getData());
+        Assertions.assertEquals(expectedData, recordChangedMessages.getData());
+
+        Map<String, String> attributesMap = recordChangedMessages.getAttributes();
+        Assertions.assertFalse(attributesMap.containsKey(DpsHeaders.COLLABORATION));
     }
 
 }
