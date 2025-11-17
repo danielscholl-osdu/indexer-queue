@@ -82,6 +82,12 @@ public class RecordsChangedSbMessageBuilder {
         // Populate attributes map for the recordChangedMessage.
         attributesMap.put(DpsHeaders.DATA_PARTITION_ID, dataPartitionId);
         attributesMap.put(DpsHeaders.CORRELATION_ID, correlationId);
+        if (message.getAsJsonObject().has(DpsHeaders.COLLABORATION)) {
+            JsonElement collaborationElement = message.getAsJsonObject().get(DpsHeaders.COLLABORATION);
+            if (collaborationElement != null && !collaborationElement.isJsonNull()) {
+                attributesMap.put(DpsHeaders.COLLABORATION, message.getAsJsonObject().get(DpsHeaders.COLLABORATION).getAsString());
+            }
+        }
 
         RecordChangedMessages recordChangedMessage = gson.fromJson(message.toString(), RecordChangedMessages.class);
         recordChangedMessage.setAttributes(attributesMap);

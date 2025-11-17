@@ -13,6 +13,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -209,5 +210,58 @@ public class IndexUpdateMessageHandlerTest {
         } catch (Exception e) {
             fail("Should only throw IndexerNoRetryException");
         }
+    }
+
+    @Test
+    public void shouldAddCollaborationHeader_WhenPresent() throws Exception {
+        // Arrange
+        Map<String, String> headers = new HashMap<>();
+        headers.put(DpsHeaders.DATA_PARTITION_ID, "test-tenant");
+        headers.put(DpsHeaders.CORRELATION_ID, "xxxxxx");
+        headers.put(DpsHeaders.COLLABORATION, "collaboration_value");
+        recordChangedMessages = RecordChangedMessages.builder()
+            .attributes(headers).build();
+
+        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(azureBootstrapConfig.getIndexerWorkerURL()).thenReturn(indexerWorkerUrl);
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        StatusLine status = new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "success");
+        when(httpResponse.getStatusLine()).thenReturn(status);
+
+        ArgumentCaptor<HttpPost> captor = ArgumentCaptor.forClass(HttpPost.class);
+
+        // Act
+        sut.sendRecordChangedMessagesToIndexer(recordChangedMessages);
+
+        // Assert
+        verify(httpClient, times(1)).execute(captor.capture());
+        HttpPost capturedPost = captor.getValue();
+
+        // Verify that setHeader was called with the correct arguments
+        verify(capturedPost).setHeader(DpsHeaders.COLLABORATION, "collaboration_value");
+    }
+
+    @Test
+    public void shouldNotAddCollaborationHeader_WhenMissing() throws Exception {
+        Map<String, String> headers = new HashMap<>();
+        headers.put(DpsHeaders.DATA_PARTITION_ID, "test-tenant");
+        headers.put(DpsHeaders.CORRELATION_ID, "xxxxxx");
+        recordChangedMessages = RecordChangedMessages.builder()
+            .attributes(headers).build();
+
+        when(httpClientBuilder.build()).thenReturn(httpClient);
+        when(azureBootstrapConfig.getIndexerWorkerURL()).thenReturn(indexerWorkerUrl);
+        when(httpClient.execute(any(HttpPost.class))).thenReturn(httpResponse);
+        StatusLine status = new BasicStatusLine(new ProtocolVersion("http", 1, 1), 200, "success");
+        when(httpResponse.getStatusLine()).thenReturn(status);
+
+        sut.sendRecordChangedMessagesToIndexer(recordChangedMessages);
+
+        assertEquals(httpMock.constructed().size(), 1);
+        HttpPost constructedPost = httpMock.constructed().get(0);
+        verify(httpClient, times(1)).execute(any());
+        verify(azureBootstrapConfig, times(1)).getIndexerWorkerURL();
+        verify(serviceAccountJwtClient, times(1)).getIdToken(any());
+        assertTrue(constructedPost.getFirstHeader(DpsHeaders.COLLABORATION) == null);
     }
 }
