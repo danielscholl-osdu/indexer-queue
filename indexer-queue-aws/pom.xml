@@ -88,7 +88,7 @@
     </distributionManagement>
 
     <properties>
-        <aws.version>1.12.738</aws.version>
+        <aws.version>1.12.793</aws.version>
         <deployment.environment>dev</deployment.environment>
         <spring-webmvc.version>6.1.16</spring-webmvc.version>
         <spring-core.version>6.2.11</spring-core.version>
