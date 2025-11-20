@@ -26,7 +26,7 @@
 
     <groupId>org.opengroup.osdu.indexerqueue</groupId>
     <artifactId>RequeueFunction</artifactId>
-    <version>0.29.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -39,12 +39,12 @@
         <azure.functions.appregion>westus</azure.functions.appregion>
         <stagingDirectory>${project.build.directory}/azure-functions/${azure.functions.appname}</stagingDirectory>
         <azure.functions.resourcegroup>SLBIndexQueueServicesRG</azure.functions.resourcegroup>
-        <azure.functions.subscriptionid />
-        <azure.functions.appserviceplanname />
-        <azure.functions.servicebusconnectionstring />
-        <azure.functions.topicname />
-        <azure.functions.subscriptionname />
-        <azure.functions.indexerqueuekey />
+        <azure.functions.subscriptionid/>
+        <azure.functions.appserviceplanname/>
+        <azure.functions.servicebusconnectionstring/>
+        <azure.functions.topicname/>
+        <azure.functions.subscriptionname/>
+        <azure.functions.indexerqueuekey/>
         <logback.version>1.4.14</logback.version>
     </properties>
 
