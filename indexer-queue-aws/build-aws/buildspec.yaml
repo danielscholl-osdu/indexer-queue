@@ -68,7 +68,7 @@ phases:
       - if [ "$GIT_SECRETS_SCAN_RESULT" = "FAILED" ]; then echo "Secrets detected!" && exit 1; fi
 
       - echo "Building primary service assemblies..."
-      - mvn -ntp -B test install sonar:sonar -pl .,indexer-queue-aws -Ddeployment.environment=prod -Dsonar.login=${SONAR_USERNAME} -Dsonar.password=${SONAR_PASSWORD} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.host.url=${SONAR_URL}
+      - mvn -ntp -B test install org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -pl .,indexer-queue-aws -Ddeployment.environment=prod -Dsonar.login=${SONAR_USERNAME} -Dsonar.password=${SONAR_PASSWORD} -Dsonar.branch.name=${BRANCH_NAME} -Dsonar.host.url=${SONAR_URL}
 
       - echo "Logging into Docker Hub..."
       - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
