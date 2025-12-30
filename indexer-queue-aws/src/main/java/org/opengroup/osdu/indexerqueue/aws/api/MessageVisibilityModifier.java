@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequest;
 import software.amazon.awssdk.services.sqs.model.ChangeMessageVisibilityBatchRequestEntry;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -43,7 +44,7 @@ public class MessageVisibilityModifier extends MessageHandler<ChangeMessageVisib
     private int getExponentialTimeOutWindow(Message message){
         int receiveCount;
         try {
-           receiveCount = Integer.parseInt(message.attributes().get("ApproximateReceiveCount"));
+           receiveCount = Integer.parseInt(message.attributes().get(MessageSystemAttributeName.APPROXIMATE_RECEIVE_COUNT));
         } catch (NumberFormatException e) {
             receiveCount = 0;
         }
