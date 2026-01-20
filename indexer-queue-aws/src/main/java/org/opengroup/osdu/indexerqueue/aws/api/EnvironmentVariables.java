@@ -26,7 +26,6 @@ import java.util.Properties;
 public class EnvironmentVariables {
     private final String region;
     private final String queueUrl;
-    private final String queueUrlV2;
     private final String targetURL;
     private final String deadLetterQueueUrl;
     private final int maxAllowedMessages;
@@ -43,8 +42,7 @@ public class EnvironmentVariables {
         this.region = System.getenv("AWS_REGION") != null ? System.getenv("AWS_REGION") : "us-east-1";
         this.targetURL = System.getenv("AWS_INDEXER_INDEX_API");
         K8sLocalParameterProvider provider = new K8sLocalParameterProvider();
-        this.queueUrl = provider.getParameterAsStringOrDefault("storage-sqs-url", System.getenv("AWS_STORAGE_QUEUE_URL"));
-        this.queueUrlV2 = provider.getParameterAsStringOrDefault("storage-v2-sqs-url", System.getenv("AWS_STORAGE_V2_QUEUE_URL"));
+        this.queueUrl = provider.getParameterAsStringOrDefault("storage-v2-sqs-url", System.getenv("AWS_STORAGE_V2_QUEUE_URL"));
         this.deadLetterQueueUrl = provider.getParameterAsStringOrDefault("indexer-deadletter-queue-sqs-url", System.getenv("AWS_DEADLETTER_QUEUE_URL"));
         appProperties = new Properties();
         try {
@@ -94,10 +92,6 @@ public class EnvironmentVariables {
 
     public String getQueueUrl() {
         return this.queueUrl;
-    }
-
-    public String getQueueUrlV2() {
-        return this.queueUrlV2;
     }
 
     public String getTargetURL() {
