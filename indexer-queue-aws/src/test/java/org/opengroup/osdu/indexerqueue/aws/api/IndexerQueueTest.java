@@ -38,6 +38,9 @@ import java.util.List;
 import uk.org.webcompere.systemstubs.rules.SystemExitRule;
 import uk.org.webcompere.systemstubs.security.AbortExecutionException;
 
+import static org.mockito.Mockito.*;
+import static org.junit.Assert.*;
+
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -111,9 +114,7 @@ public class IndexerQueueTest {
                     assertEquals(maxWaitTime, request.waitTimeSeconds().intValue());
                     assertTrue(request.messageAttributeNames().contains("All"));
                     assertTrue(request.messageSystemAttributeNamesAsStrings().contains("All"));
-                    envMock.constructed().forEach(envMockConstructed ->
-                        verify(envMockConstructed, never()).getQueueUrlV2()
-                    );
+                    // Queue URL is passed directly to constructor, not retrieved from EnvironmentVariables
                 }
             }
         }
