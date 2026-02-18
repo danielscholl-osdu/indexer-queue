@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.5</version>
+		<version>3.3.13</version>
         <relativePath/>
 	</parent>
 
@@ -35,7 +35,7 @@
 				</property>
 			</activation>
 			<properties>
-                <spring-security.version>6.3.4</spring-security.version>
+                <spring-security.version>6.3.10</spring-security.version>
 				<repo.releases.id>community-maven-repo</repo.releases.id>
 				<publish.snapshots.id>community-maven-via-job-token</publish.snapshots.id>
 				<publish.releases.id>community-maven-via-job-token</publish.releases.id>
@@ -272,7 +272,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>6.1.6</version>
+            <version>6.1.21</version>
         </dependency>
 		<!-- spring boot dependencies -->
 		<dependency>
