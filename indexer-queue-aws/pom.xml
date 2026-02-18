@@ -93,7 +93,7 @@
         <spring-webmvc.version>6.1.16</spring-webmvc.version>
         <spring-core.version>6.2.11</spring-core.version>
         <netty.version>4.1.124.Final</netty.version>
-        <json-smart.version>2.5.2</json-smart.version>
+        <json-smart.version>2.4.11</json-smart.version>
     </properties>
 
     <dependencyManagement>
