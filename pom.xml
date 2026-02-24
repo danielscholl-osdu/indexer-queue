@@ -293,7 +293,7 @@
                 <plugin>
                     <groupId>org.whitesource</groupId>
                     <artifactId>whitesource-maven-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.3.1</version>
                     <configuration>
                         <orgToken>${orgToken}</orgToken>
                         <wssUrl>https://app-eu.whitesourcesoftware.com/agent</wssUrl>
