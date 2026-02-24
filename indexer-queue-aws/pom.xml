@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.11</version>
+        <version>3.3.13</version>
         <relativePath></relativePath>
     </parent>
 
@@ -90,8 +90,8 @@
     <properties>
         <aws.version>1.12.738</aws.version>
         <deployment.environment>dev</deployment.environment>
-        <spring-webmvc.version>6.1.16</spring-webmvc.version>
-        <spring-core.version>6.2.11</spring-core.version>
+        <spring-webmvc.version>6.1.21</spring-webmvc.version>
+        <spring-core.version>6.2.16</spring-core.version>
         <netty.version>4.1.124.Final</netty.version>
         <json-smart.version>2.5.2</json-smart.version>
     </properties>
@@ -134,7 +134,7 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-            <version>6.3.8</version>
+            <version>6.3.10</version>
         </dependency>
         <!-- Internal packages -->
         <dependency>
